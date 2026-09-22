@@ -99,7 +99,19 @@ _Not documented yet._
 
 ### database-server
 
-_Not documented yet._
+- **Role**: the platform PostgreSQL instance, a CloudNativePG `Cluster` named `cnpg-postgresql` (PostgreSQL 18, one instance, 2Gi on the `standard` storage class), with one logical `Database` per entry of the list, each owned by a role whose credentials are read from a Secret. Reachable at `cnpg-postgresql-rw.okdp-system.svc.cluster.local:5432`.
+- **Why**: identity stores its state in the `keycloak` database. The data services declare their own databases the same way, in their own values.
+- **Depends on**: pg-operator, whose CRDs it uses, hence pass 2, and local-secrets-provider for the owner Secret.
+- **Source**: the sandbox definition [cnpg-postgresql](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/cnpg-postgresql): chart cnpg-postgresql 0.1.0, image ghcr.io/cloudnative-pg/postgresql 18.3.
+- **Install**: `tags.cnpg-postgresql` in `values/sandbox.yaml`, second pass. Chart-testing does not cover it: it cannot be installed alone without the operator CRDs. The chart also checks, at render time, that the owner Secret exists in the namespace, so `helm template` without a cluster reports it missing while `helm install` and `helm upgrade` find it.
+- **Verify**:
+
+  ```sh
+  kubectl get cluster cnpg-postgresql -n okdp-system     # STATUS Cluster in healthy state
+  kubectl get database keycloak -n okdp-system           # APPLIED True
+  kubectl exec cnpg-postgresql-1 -n okdp-system -- psql -U postgres -tAc "select datname, pg_get_userbyid(datdba) from pg_database where datname = 'keycloak'"
+  # keycloak|keycloak
+  ```
 
 ### identity
 

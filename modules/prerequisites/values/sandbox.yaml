@@ -39,7 +39,7 @@ tags:
   # cert-manager trust, second pass
   trust-manager: false
   # database-server, second pass
-  cnpg-postgresql: false
+  cnpg-postgresql: true
   # cert-manager issuers, third pass
   cert-issuers: false
   # identity, third pass
@@ -72,8 +72,25 @@ dns-server: {}
 # Pass 2: cert-manager trust
 trust-manager: {}
 
-# Pass 2: database-server
-cnpg-postgresql: {}
+# Pass 2: database-server, from sandbox-dependencies/packages/system/cnpg-postgresql
+cnpg-postgresql:
+  replicaCount: 1
+  # Keeps the sandbox service name: cnpg-postgresql-rw.okdp-system.svc.cluster.local
+  fullnameOverride: cnpg-postgresql
+  image:
+    repository: ghcr.io/cloudnative-pg/postgresql
+    pullPolicy: IfNotPresent
+    tag: "18.3"
+  storage:
+    size: 2Gi
+    class: standard
+  # One logical database per entry, owned by a role whose credentials come
+  # from a Secret with the keys username and password.
+  databases:
+    - name: keycloak
+      owner:
+        username: keycloak
+        passwordSecret: creds-keycloak-db
 
 # Pass 3: cert-manager issuers
 cert-issuers: {}
