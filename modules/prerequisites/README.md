@@ -83,7 +83,20 @@ _Not documented yet._
 
 ### ingress
 
-_Not documented yet._
+- **Role**: the [NGINX ingress controller](https://kubernetes.github.io/ingress-nginx/), the single HTTP and HTTPS entry point of the platform. In the sandbox it runs in NodePort mode on 30080 and 30443, the ports the Kind cluster maps to 80 and 443 on the host. SSL passthrough is enabled for the services that terminate TLS themselves.
+- **Why**: every web interface and API of the platform (Keycloak, the console, JupyterHub, Superset, Trino, Airflow, the Spark UIs) is published as an Ingress of class `nginx` under the `okdp.sandbox` suffix.
+- **Depends on**: nothing, first pass.
+- **Source**: the sandbox definition [ingress-nginx](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/ingress-nginx): chart ingress-nginx 4.12.1. The sandbox also offers a `hostPort` mode (host network, no Service) and a `metallb` mode (LoadBalancer with a fixed IP); their values are given as comments in `values/sandbox.yaml`. The upstream project is [archived](https://github.com/kubernetes/ingress-nginx); the sandbox is evaluating its replacement, and the class name is the only thing the other modules depend on.
+- **Install**: `tags.ingress-nginx` in `values/sandbox.yaml`.
+- **Verify**:
+
+  ```sh
+  kubectl get deploy prerequisites-ingress-nginx-controller -n okdp-system   # 1/1 AVAILABLE
+  kubectl get ingressclass nginx
+  kubectl port-forward svc/prerequisites-ingress-nginx-controller -n okdp-system 8443:443 &
+  curl -sk https://localhost:8443 ; kill %1
+  # 404 Not Found from nginx: the default backend answers
+  ```
 
 ### external-secrets
 
