@@ -91,7 +91,17 @@ _Not documented yet._
 
 ### local-secrets-provider
 
-_Not documented yet._
+- **Role**: creates the Kubernetes Secrets the platform needs from a static list, one Secret per entry, replicated to every namespace by the replicator of tools. An entry with an empty value gets a random one from the secret generator of tools. It is a local stand-in for a secret manager: the credentials are in clear in the values file, which is acceptable on a throwaway cluster only.
+- **Why**: database-server needs the owner credentials of each database as a Secret, and identity reads the same Secret to connect. In the sandbox the list holds `creds-keycloak-db`.
+- **Depends on**: tools, pass 1.
+- **Source**: the sandbox definition [local-secrets-provider](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/local-secrets-provider): chart local-secrets-provider 0.1.0.
+- **Install**: `tags.local-secrets-provider` in `values/sandbox.yaml`. On a real cluster, leave it off and create the same Secrets from your secret manager.
+- **Verify**:
+
+  ```sh
+  kubectl get secret creds-keycloak-db -n okdp-system -o jsonpath='{.data.username}' | base64 -d   # keycloak
+  kubectl get secret creds-keycloak-db -n default        # replicated by tools
+  ```
 
 ### dns
 
