@@ -75,7 +75,20 @@ _Not documented yet._
 
 ### cert-manager
 
-_Not documented yet._
+- **Role**: [cert-manager](https://cert-manager.io/) issues and renews TLS certificates from Kubernetes resources. `trust-manager` distributes CA bundles to every namespace as ConfigMaps and Secrets. `cert-issuers`, an OKDP chart, creates the `default-issuer` ClusterIssuer backed by a self-signed CA, and the `certs-bundle` trust Bundle that carries its certificate.
+- **Why**: every ingress of the platform gets its certificate from the `default-issuer` ClusterIssuer, and the services that call each other over TLS (Keycloak, Trino, Superset, the notebooks) trust the CA through the `certs-bundle` ConfigMap and Secret.
+- **Depends on**: nothing for cert-manager, pass 1. `trust-manager` gets its webhook certificate from cert-manager, pass 2. `cert-issuers` creates issuers, a CA certificate and a Bundle, which need the CRDs of both, pass 3. The copy of the CA Secret into other namespaces relies on the replicator of tools.
+- **Source**: the sandbox definition [cert-manager](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/cert-manager): cert-manager v1.17.1, trust-manager v0.16.0, cert-issuers 0.2.0. `installCRDs` is the key the sandbox uses; the chart also accepts `crds.enabled`. `app.trust.namespace` is the release namespace, where the CA Secret lives.
+- **Install**: `tags.cert-manager` (pass 1), `tags.trust-manager` (pass 2) and `tags.cert-issuers` (pass 3) in `values/sandbox.yaml`.
+- **Verify**:
+
+  ```sh
+  kubectl get clusterissuer                 # default-issuer-self and default-issuer are READY
+  kubectl get certificate -n okdp-system    # default-issuer is READY
+  kubectl get bundle certs-bundle           # the Bundle is synced
+  kubectl get configmap certs-bundle -n default -o jsonpath='{.data.root-certs\.pem}' | head -1
+  # -----BEGIN CERTIFICATE-----
+  ```
 
 ### pg-operator
 

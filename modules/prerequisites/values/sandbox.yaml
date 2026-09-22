@@ -24,7 +24,7 @@ tags:
   replicator: false
   secret-generator: false
   # cert-manager
-  cert-manager: false
+  cert-manager: true
   # pg-operator
   cloudnative-pg: false
   # ingress
@@ -37,11 +37,11 @@ tags:
   coredns-patch: false
   dns-server: false
   # cert-manager trust, second pass
-  trust-manager: false
+  trust-manager: true
   # database-server, second pass
   cnpg-postgresql: false
   # cert-manager issuers, third pass
-  cert-issuers: false
+  cert-issuers: true
   # identity, third pass
   keycloak: false
 
@@ -50,8 +50,16 @@ reloader: {}
 replicator: {}
 secret-generator: {}
 
-# Pass 1: cert-manager
-cert-manager: {}
+# Pass 1: cert-manager, from sandbox-dependencies/packages/system/cert-manager
+cert-manager:
+  installCRDs: true
+  enableCertificateOwnerRef: true
+  image:
+    repository: quay.io/jetstack/cert-manager-controller
+  webhook:
+    extraArgs:
+      # 90 days of validity for the webhook serving certificate instead of 7.
+      - --dynamic-serving-leaf-duration=2160h
 
 # Pass 1: pg-operator
 cloudnative-pg: {}
@@ -69,14 +77,47 @@ local-secrets-provider: {}
 coredns-patch: {}
 dns-server: {}
 
-# Pass 2: cert-manager trust
-trust-manager: {}
+# Pass 2: cert-manager trust, from sandbox-dependencies/packages/system/cert-manager
+trust-manager:
+  app:
+    trust:
+      # Where the CA Secret of the issuers lives: the release namespace.
+      namespace: okdp-system
+  secretTargets:
+    enabled: true
+    authorizedSecrets:
+      - certs-bundle
+  image:
+    repository: quay.io/jetstack/trust-manager
 
 # Pass 2: database-server
 cnpg-postgresql: {}
 
-# Pass 3: cert-manager issuers
-cert-issuers: {}
+# Pass 3: cert-manager issuers, from sandbox-dependencies/packages/system/cert-manager
+cert-issuers:
+  selfSignedClusterIssuers:
+    - name: default-issuer
+      certificate:
+        commonName: OKDP Sandbox Self-Signed CA
+        organization: OKDP
+        country: FR
+        validity: 8760h
+        algorithm: ECDSA
+        size: 256
+  bundle:
+    enabled: true
+    name: certs-bundle
+    target:
+      configMap:
+        enabled: true
+        key: root-certs.pem
+      secret:
+        enabled: true
+        key: ca.crt
+      additionalFormats:
+        pkcs12:
+          enabled: true
+          key: bundle.p12
 
 # Pass 3: identity
 keycloak: {}

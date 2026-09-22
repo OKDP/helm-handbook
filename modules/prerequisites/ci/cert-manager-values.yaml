@@ -1,0 +1,56 @@
+#
+# Copyright 2026 The OKDP Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# chart-testing: installs the cert-manager module alone, first pass only.
+# trust-manager and the issuers need the CRDs this pass creates, so they are
+# covered by the three-pass installation of the README, not by chart-testing.
+tags:
+  # tools
+  reloader: false
+  replicator: false
+  secret-generator: false
+  # cert-manager
+  cert-manager: true
+  # pg-operator
+  cloudnative-pg: false
+  # ingress
+  ingress-nginx: false
+  # external-secrets
+  external-secrets: false
+  # local-secrets-provider
+  local-secrets-provider: false
+  # dns, Kind only
+  coredns-patch: false
+  dns-server: false
+  # cert-manager trust, second pass
+  trust-manager: false
+  # database-server, second pass
+  cnpg-postgresql: false
+  # cert-manager issuers, third pass
+  cert-issuers: false
+  # identity, third pass
+  keycloak: false
+
+# Pass 1: cert-manager, from sandbox-dependencies/packages/system/cert-manager
+cert-manager:
+  installCRDs: true
+  enableCertificateOwnerRef: true
+  image:
+    repository: quay.io/jetstack/cert-manager-controller
+  webhook:
+    extraArgs:
+      # 90 days of validity for the webhook serving certificate instead of 7.
+      - --dynamic-serving-leaf-duration=2160h
