@@ -103,4 +103,21 @@ _Not documented yet._
 
 ### identity
 
-_Not documented yet._
+- **Role**: [Keycloak](https://www.keycloak.org/) 26.1, the OpenID Connect provider of the platform, at `https://keycloak.okdp.sandbox`. Its master realm is provisioned at install time by keycloak-config-cli: the sandbox users (bob, mark, nina, grace, alice, eve, adm and the service accounts), the realm roles, a `groups` client scope that maps realm roles into a `groups` claim, and one client per service (console, Superset, JupyterHub, Trino, Spark history, Polaris, Airflow, the service accounts). Admin console: `admin` / `admin`, sandbox credentials to change anywhere else.
+- **Why**: every web interface and API of the platform authenticates against it. The data services reference its issuer `https://keycloak.okdp.sandbox/realms/master`, their client id and secret.
+- **Depends on**: database-server (the `keycloak` database), local-secrets-provider (`creds-keycloak-db`), ingress, and the cert-manager issuers for the TLS certificate, hence pass 3.
+- **Source**: the sandbox definition [keycloak](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/keycloak): Bitnami chart keycloak 24.4.11 with the OKDP images of Keycloak and keycloak-config-cli (`allowInsecureImages` because they are not Bitnami builds). The realm JSON is the sandbox one, with the ingress suffix written in. One value is added: `externalDatabase.existingSecret` points the chart at the credentials Secret, because the chart otherwise generates a database password of its own and refuses to during an upgrade; the sandbox installs Keycloak as a release of its own and never meets that case.
+- **Install**: `tags.keycloak` in `values/sandbox.yaml`, third pass. Chart-testing does not cover it: it needs the database of the second pass.
+- **Verify**:
+
+  ```sh
+  kubectl get statefulset prerequisites-keycloak -n okdp-system   # 1/1; the realm import job is a hook, deleted once it succeeds
+  kubectl get certificate -n okdp-system                          # keycloak.okdp.sandbox-tls READY
+  kubectl port-forward svc/prerequisites-ingress-nginx-controller -n okdp-system 8443:443 &
+  curl -sk --resolve keycloak.okdp.sandbox:8443:127.0.0.1 https://keycloak.okdp.sandbox:8443/realms/master | head -c 60
+  # {"realm":"master","public_key":"...
+  TOKEN=$(curl -sk --resolve keycloak.okdp.sandbox:8443:127.0.0.1 -d client_id=admin-cli -d username=admin -d password=admin -d grant_type=password     https://keycloak.okdp.sandbox:8443/realms/master/protocol/openid-connect/token | jq -r .access_token)
+  curl -sk --resolve keycloak.okdp.sandbox:8443:127.0.0.1 -H "Authorization: Bearer $TOKEN"     'https://keycloak.okdp.sandbox:8443/admin/realms/master/users?max=50' | jq -r '[.[].username] | join(" ")'
+  # adm admin alice bob eve grace mark nina and the three svc- accounts
+  kill %1
+  ```
