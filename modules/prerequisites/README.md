@@ -71,7 +71,29 @@ One section per prerequisite, following this template:
 
 ### tools
 
-_Not documented yet._
+- **Role**: three cluster-wide utilities. [Reloader](https://github.com/stakater/Reloader) restarts the pods of a workload annotated `reloader.stakater.com/auto: "true"` when a ConfigMap or Secret it uses changes. [Replicator](https://github.com/mittwald/kubernetes-replicator) copies Secrets and ConfigMaps across namespaces, driven by the `replicator.v1.mittwald.de/replicate-to` annotation. [Secret Generator](https://github.com/mittwald/kubernetes-secret-generator) fills Secrets annotated `secret-generator.v1.mittwald.de/autogenerate` with random values.
+- **Why**: generated and replicated secrets are how the sandbox hands credentials from one prerequisite to another. local-secrets-provider, database-server and identity rely on them.
+- **Depends on**: nothing, first pass.
+- **Source**: the sandbox definition [sandbox-dependencies/packages/system/tools](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/tools): reloader 1.0.72, kubernetes-replicator 2.9.2, kubernetes-secret-generator 3.4.0. The sandbox installs them in the `kube-tools` namespace; here they land in the release namespace, which changes nothing for their consumers since all three are cluster-wide.
+- **Install**: `tags.reloader`, `tags.replicator` and `tags.secret-generator` in `values/sandbox.yaml`.
+- **Verify**:
+
+  ```sh
+  kubectl get deploy -n okdp-system
+  # prerequisites-reloader, prerequisites-replicator and secret-generator are 1/1 AVAILABLE
+
+  kubectl apply -n okdp-system -f - <<EOF
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: generated
+    annotations:
+      secret-generator.v1.mittwald.de/autogenerate: password
+  EOF
+  kubectl get secret generated -n okdp-system -o jsonpath='{.data.password}' | base64 -d | wc -c
+  # 40, the length of the generated password
+  kubectl delete secret generated -n okdp-system
+  ```
 
 ### cert-manager
 
