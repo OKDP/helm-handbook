@@ -1,0 +1,16 @@
+lint-conf: .lintconf.yaml
+remote: origin
+target-branch: main
+chart-dirs:
+  - modules
+# HTTP chart repositories of the umbrella dependencies, added before
+# `helm dependency build`. OCI repositories need no registration.
+chart-repos:
+  - stakater=https://stakater.github.io/stakater-charts
+  - mittwald=https://helm.mittwald.de
+  - jetstack=https://charts.jetstack.io
+  - cnpg=https://cloudnative-pg.github.io/charts/
+  - ingress-nginx=https://kubernetes.github.io/ingress-nginx
+  - external-secrets=https://charts.external-secrets.io
+validate-maintainers: false
+debug: false
