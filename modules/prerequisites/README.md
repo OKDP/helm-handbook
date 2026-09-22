@@ -87,7 +87,17 @@ _Not documented yet._
 
 ### external-secrets
 
-_Not documented yet._
+- **Role**: the [External Secrets Operator](https://external-secrets.io/), which synchronizes secrets from an external backend (HashiCorp Vault, a cloud secret manager) into Kubernetes Secrets, through `SecretStore` and `ExternalSecret` resources.
+- **Why**: it is the secret backend the platform is built for: the OKDP console manages secret stores and external secrets through these resources, and Vault plugs in behind it. On a local cluster, local-secrets-provider stands in for the backend with a static list of Secrets.
+- **Depends on**: nothing, pass 1.
+- **Source**: the sandbox definition [external-secrets](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/external-secrets): chart external-secrets 0.15.1. The images are pulled from ghcr.io instead of the oci.external-secrets.io mirror, which some corporate proxies block.
+- **Install**: `tags.external-secrets` in `values/sandbox.yaml`.
+- **Verify**:
+
+  ```sh
+  kubectl get deploy -n okdp-system | grep external-secrets   # operator, webhook and cert-controller 1/1
+  kubectl get crd secretstores.external-secrets.io externalsecrets.external-secrets.io
+  ```
 
 ### local-secrets-provider
 
