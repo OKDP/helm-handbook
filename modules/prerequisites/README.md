@@ -95,7 +95,24 @@ _Not documented yet._
 
 ### dns
 
-_Not documented yet._
+Kind only: it makes the sandbox domain resolve without a real DNS zone.
+
+- **Role**: two pieces. `coredns-patch` runs a Job that adds a template to the CoreDNS Corefile so that, inside the cluster, every `*.okdp.sandbox` name is a CNAME to the ingress controller Service. `dns-server` runs dnsmasq, exposed on NodePort 30053/UDP, answering `*.okdp.sandbox` with `127.0.0.1` for the host machine: with the port mapping of the sandbox Kind cluster, the host resolver can be pointed at it.
+- **Why**: the platform services reach each other through the ingress by host name (Keycloak issuer URL, S3 endpoint, Trino), so pods must resolve those names, and the developer's browser must resolve them to the Kind node.
+- **Depends on**: ingress, the target of the CNAME. The Job succeeds without it, resolution works once the ingress controller Service exists. `dns-server` needs the Kind cluster to map port 30053/UDP to the host, see the sandbox [DNS setup](https://github.com/OKDP/okdp-sandbox#5-dns-setup).
+- **Source**: the sandbox definitions [coredns-patch](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/coredns-patch) (chart coredns-patch 0.1.0) and [dns-server](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/dns-server) (chart dns-server 1.0.0). The Job and its RBAC are created in `kube-system` whatever the release namespace. `ingressService` points at the ingress controller Service of this chart.
+- **Install**: `tags.coredns-patch` and `tags.dns-server` in `values/sandbox.yaml`.
+- **Verify**:
+
+  ```sh
+  kubectl get job coredns-config-job -n kube-system   # COMPLETIONS 1/1
+  kubectl run dns-check --rm -it --restart=Never --image=busybox:1.36 -- \
+    nslookup keycloak.okdp.sandbox
+  # answers with the ClusterIP of prerequisites-ingress-nginx-controller
+  kubectl run dns-check --rm -it --restart=Never --image=busybox:1.36 -- \
+    nslookup keycloak.okdp.sandbox prerequisites-dns-server.okdp-system.svc.cluster.local
+  # answers 127.0.0.1
+  ```
 
 ### database-server
 
