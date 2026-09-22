@@ -14,10 +14,7 @@
 # limitations under the License.
 #
 
-# Sandbox environment: a local Kind cluster, ingress suffix okdp.sandbox.
-# Each prerequisite is switched on by its tag and configured in the block
-# named after its alias. Values are the ones the OKDP sandbox runs, see
-# sandbox-dependencies/packages/system/<name>.
+# chart-testing: installs the pg-operator module alone.
 tags:
   # tools
   reloader: false
@@ -45,14 +42,6 @@ tags:
   # identity, third pass
   keycloak: false
 
-# Pass 1: tools
-reloader: {}
-replicator: {}
-secret-generator: {}
-
-# Pass 1: cert-manager
-cert-manager: {}
-
 # Pass 1: pg-operator, from sandbox-dependencies/packages/system/cloudnative-pg
 cloudnative-pg:
   config:
@@ -69,28 +58,3 @@ cloudnative-pg:
     limits:
       cpu: 1
       memory: 1Gi
-
-# Pass 1: ingress
-ingress-nginx: {}
-
-# Pass 1: external-secrets
-external-secrets: {}
-
-# Pass 1: local-secrets-provider
-local-secrets-provider: {}
-
-# Pass 1: dns, Kind only
-coredns-patch: {}
-dns-server: {}
-
-# Pass 2: cert-manager trust
-trust-manager: {}
-
-# Pass 2: database-server
-cnpg-postgresql: {}
-
-# Pass 3: cert-manager issuers
-cert-issuers: {}
-
-# Pass 3: identity
-keycloak: {}

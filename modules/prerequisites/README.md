@@ -79,7 +79,17 @@ _Not documented yet._
 
 ### pg-operator
 
-_Not documented yet._
+- **Role**: the [CloudNativePG](https://cloudnative-pg.io/) operator, which manages PostgreSQL clusters declared as `Cluster` resources: provisioning, streaming replication, backups, failover.
+- **Why**: database-server declares the platform PostgreSQL instance as a `Cluster`, and Hive Metastore, Polaris, Superset, Airflow and Keycloak store their state in it.
+- **Depends on**: nothing, first pass. `clusterWide: true` makes it watch every namespace.
+- **Source**: the sandbox definition [cloudnative-pg](https://github.com/OKDP/sandbox-dependencies/tree/main/packages/system/cloudnative-pg): chart cloudnative-pg 0.28.0, operator image 1.29.1.
+- **Install**: `tags.cloudnative-pg` in `values/sandbox.yaml`.
+- **Verify**:
+
+  ```sh
+  kubectl get deploy prerequisites-cloudnative-pg -n okdp-system   # 1/1 AVAILABLE
+  kubectl get crd clusters.postgresql.cnpg.io
+  ```
 
 ### ingress
 
