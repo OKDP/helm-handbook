@@ -14,16 +14,16 @@
 # limitations under the License.
 #
 
-# Defaults: every prerequisite is switched off. A tag missing from this map
-# would switch its chart on, so every alias is listed. Environments set the
-# tags and the configuration blocks in values/<environment>.yaml.
+# chart-testing: installs the cert-manager module alone, first pass only.
+# trust-manager and the issuers need the CRDs this pass creates, so they are
+# covered by the three-pass installation of the README, not by chart-testing.
 tags:
   # tools
   reloader: false
   replicator: false
   secret-generator: false
   # cert-manager
-  cert-manager: false
+  cert-manager: true
   # pg-operator
   cloudnative-pg: false
   # ingress
@@ -43,3 +43,14 @@ tags:
   cert-issuers: false
   # identity, third pass
   keycloak: false
+
+# Pass 1: cert-manager, from sandbox-dependencies/packages/system/cert-manager
+cert-manager:
+  installCRDs: true
+  enableCertificateOwnerRef: true
+  image:
+    repository: quay.io/jetstack/cert-manager-controller
+  webhook:
+    extraArgs:
+      # 90 days of validity for the webhook serving certificate instead of 7.
+      - --dynamic-serving-leaf-duration=2160h
