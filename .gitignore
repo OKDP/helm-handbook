@@ -1,0 +1,3 @@
+# Helm dependency downloads, rebuilt with `helm dependency build`
+modules/**/charts/
+*.tgz

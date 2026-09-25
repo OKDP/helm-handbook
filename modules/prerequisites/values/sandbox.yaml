@@ -1,0 +1,102 @@
+#
+# Copyright 2026 The OKDP Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Sandbox environment: a local Kind cluster, ingress suffix okdp.sandbox.
+# Each prerequisite is switched on by its tag and configured in the block
+# named after its alias. Values are the ones the OKDP sandbox runs, see
+# sandbox-dependencies/packages/system/<name>.
+tags:
+  # tools
+  reloader: false
+  replicator: false
+  secret-generator: false
+  # cert-manager
+  cert-manager: false
+  # pg-operator
+  cloudnative-pg: false
+  # ingress
+  ingress-nginx: false
+  # external-secrets
+  external-secrets: true
+  # local-secrets-provider
+  local-secrets-provider: false
+  # dns, Kind only
+  coredns-patch: false
+  dns-server: false
+  # cert-manager trust, second pass
+  trust-manager: false
+  # database-server, second pass
+  cnpg-postgresql: false
+  # cert-manager issuers, third pass
+  cert-issuers: false
+  # identity, third pass
+  keycloak: false
+
+# Pass 1: tools
+reloader: {}
+replicator: {}
+secret-generator: {}
+
+# Pass 1: cert-manager
+cert-manager: {}
+
+# Pass 1: pg-operator
+cloudnative-pg: {}
+
+# Pass 1: ingress
+ingress-nginx: {}
+
+# Pass 1: external-secrets, from sandbox-dependencies/packages/system/external-secrets
+external-secrets:
+  installCRDs: true
+  # crds.conversion.enabled must follow webhook.create: a CRD left with a
+  # webhook conversion strategy and no service behind it makes the API
+  # server retry against a missing endpoint on every conversion.
+  crds:
+    conversion:
+      enabled: true
+  # The chart defaults to oci.external-secrets.io, a mirror some corporate
+  # proxies do not allow; ghcr.io carries the same releases. The chart has
+  # three image blocks, one per deployment.
+  image:
+    repository: ghcr.io/external-secrets/external-secrets
+  webhook:
+    create: true
+    image:
+      repository: ghcr.io/external-secrets/external-secrets
+  certController:
+    create: true
+    image:
+      repository: ghcr.io/external-secrets/external-secrets
+
+# Pass 1: local-secrets-provider
+local-secrets-provider: {}
+
+# Pass 1: dns, Kind only
+coredns-patch: {}
+dns-server: {}
+
+# Pass 2: cert-manager trust
+trust-manager: {}
+
+# Pass 2: database-server
+cnpg-postgresql: {}
+
+# Pass 3: cert-manager issuers
+cert-issuers: {}
+
+# Pass 3: identity
+keycloak: {}
