@@ -13,3 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Defaults: every prerequisite is switched off. A tag missing from this map
+# would switch its chart on, so every alias is listed. Environments set the
+# tags and the configuration blocks in values/<environment>.yaml.
+tags:
+  # tools
+  reloader: false
+  replicator: false
+  secret-generator: false
+  # cert-manager
+  cert-manager: false
+  # pg-operator
+  cloudnative-pg: false
+  # ingress
+  ingress-nginx: false
+  # external-secrets
+  external-secrets: false
+  # local-secrets-provider
+  local-secrets-provider: false
+  # dns, Kind only
+  coredns-patch: false
+  dns-server: false
+  # cert-manager trust, second pass
+  trust-manager: false
+  # database-server, second pass
+  cnpg-postgresql: false
+  # cert-manager issuers, third pass
+  cert-issuers: false
+  # identity, third pass
+  keycloak: false
