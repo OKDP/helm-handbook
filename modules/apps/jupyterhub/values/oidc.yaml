@@ -1,0 +1,80 @@
+#
+# Copyright 2026 The OKDP Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Overlay: sign in with the OpenID Connect provider of the platform, Keycloak
+# in the sandbox, instead of the shared password. On top of values/minimal.yaml,
+# with the ingress and tls overlays: the provider calls back the hub by its
+# host name over HTTPS.
+#
+# Needs a confidential client registered at the provider for this JupyterHub,
+# with https://jupyterhub.okdp.sandbox/hub/oauth_callback as redirect URI;
+# registering it belongs to the identity module. Its id and secret go into a
+# Secret of the release namespace:
+#
+#   kubectl create secret generic jupyterhub-oidc -n jupyterhub \
+#     --from-literal=client_id=jupyterhub \
+#     --from-literal=client_secret=<the client secret> \
+#     --from-literal=JUPYTERHUB_CRYPT_KEY=$(openssl rand -hex 32)
+#
+# The hub must resolve the provider by name from inside the cluster. The
+# sandbox provider carries a self-signed certificate, hence
+# validate_server_cert: false; drop it with a trusted certificate.
+
+hub:
+  extraEnv:
+    OAUTH_CLIENT_ID:
+      valueFrom:
+        secretKeyRef:
+          name: jupyterhub-oidc
+          key: client_id
+    OAUTH_CLIENT_SECRET:
+      valueFrom:
+        secretKeyRef:
+          name: jupyterhub-oidc
+          key: client_secret
+    JUPYTERHUB_CRYPT_KEY:
+      valueFrom:
+        secretKeyRef:
+          name: jupyterhub-oidc
+          key: JUPYTERHUB_CRYPT_KEY
+  config:
+    JupyterHub:
+      authenticator_class: generic-oauth
+    Authenticator:
+      allow_all: true
+      auto_login: true
+      enable_auth_state: true
+      auth_refresh_age: 300
+      refresh_pre_spawn: true
+    GenericOAuthenticator:
+      login_service: keycloak
+      oauth_callback_url: https://jupyterhub.okdp.sandbox/hub/oauth_callback
+      authorize_url: https://keycloak.okdp.sandbox/realms/master/protocol/openid-connect/auth
+      token_url: https://keycloak.okdp.sandbox/realms/master/protocol/openid-connect/token
+      userdata_url: https://keycloak.okdp.sandbox/realms/master/protocol/openid-connect/userinfo
+      validate_server_cert: false
+      username_key: preferred_username
+      claim_groups_key: groups
+      manage_groups: true
+      admin_groups:
+        - platform_admin
+      userdata_params:
+        state: state
+      scope:
+        - openid
+        - profile
+        - email
+        - groups
