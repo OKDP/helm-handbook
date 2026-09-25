@@ -11,11 +11,16 @@ A Helm chart for installing OKDP prerequisites.
 To install the chart with the release name `prerequisites`:
 
 ```sh
-$ helm install prerequisites modules/prerequisites
+helm dependency update modules/prerequisites/
+helm install prerequisites modules/prerequisites \
+  -f modules/prerequisites/values/sandbox.yaml \
+  -n okdp-prerequisites \
+  --create-namespace
 ```
 
 ## Uninstalling the chart `prerequisites`
 
 ```sh
-$ helm uninstall prerequisites
+helm uninstall prerequisites -n okdp-prerequisites
+kubectl delete namespace okdp-prerequisites
 ```

@@ -18,3 +18,15 @@ apiVersion: v2
 name: prerequisites
 description: A Helm chart for installing OKDP prerequisites
 version: 0.1.0
+dependencies:
+  - name: reloader
+    version: "1.0.72"
+    repository: "https://stakater.github.io/stakater-charts"
+  - name: kubernetes-replicator
+    version: "2.9.2"
+    repository: "https://helm.mittwald.de"
+    alias: replicator
+  - name: kubernetes-secret-generator
+    version: "3.4.0"
+    repository: "https://helm.mittwald.de"
+    alias: secret-generator
