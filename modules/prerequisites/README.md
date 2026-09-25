@@ -11,6 +11,7 @@ A Helm chart for installing OKDP prerequisites.
 To install the chart with the release name `prerequisites`:
 
 ```sh
+$ helm dependency update modules/prerequisites/
 $ helm install prerequisites modules/prerequisites
 ```
 
