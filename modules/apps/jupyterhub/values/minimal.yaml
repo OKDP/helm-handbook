@@ -25,16 +25,14 @@
 hub:
   config:
     JupyterHub:
-      authenticator_class: dummy
-    DummyAuthenticator:
-      # Shared password of the dummy authenticator, any user name works.
+      authenticator_class: shared-password
+    SharedPasswordAuthenticator:
+      # One password for every user name, eight characters at least.
       # For a local test only.
-      password: okdp
+      user_password: okdp-sandbox
     Authenticator:
       # JupyterHub 5 lets nobody in unless told otherwise.
       allow_all: true
-      admin_users:
-        - admin
   db:
     type: sqlite-pvc
     pvc:

@@ -14,7 +14,7 @@ helm install jupyterhub jupyterhub/jupyterhub --version 4.3.3 \
 kubectl port-forward svc/proxy-public -n jupyterhub 8080:80
 ```
 
-Open http://localhost:8080 and sign in with any user name and the password `okdp`. The first server takes a few minutes: the notebook image is pulled at that moment.
+Open http://localhost:8080 and sign in with any user name and the password `okdp-sandbox`. The first server takes a few minutes: the notebook image is pulled at that moment.
 
 What the minimum keeps from the sandbox: the chart version, the OKDP scientific Python image, the root start that hands the home directory over to the user, no image pre-puller, no culling, no user scheduler.
 
