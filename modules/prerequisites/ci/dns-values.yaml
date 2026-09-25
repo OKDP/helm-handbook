@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 
-# Defaults: every prerequisite is switched off. A tag missing from this map
-# would switch its chart on, so every alias is listed. Environments set the
-# tags and the configuration blocks in values/<environment>.yaml.
+# chart-testing: installs the dns module alone.
 tags:
   # tools
   reloader: false
@@ -33,8 +31,8 @@ tags:
   # local-secrets-provider
   local-secrets-provider: false
   # dns, Kind only
-  coredns-patch: false
-  dns-server: false
+  coredns-patch: true
+  dns-server: true
   # cert-manager trust, second pass
   trust-manager: false
   # database-server, second pass
@@ -43,3 +41,35 @@ tags:
   cert-issuers: false
   # identity, third pass
   keycloak: false
+
+# Pass 1: dns, Kind only, from sandbox-dependencies/packages/system/coredns-patch and dns-server
+coredns-patch:
+  ingressSuffix: okdp.sandbox
+  # The ingress controller Service of this chart, target of the CNAME.
+  ingressService: prerequisites-ingress-nginx-controller.okdp-system.svc.cluster.local
+  job:
+    image: quay.io/okdp/sandbox-images/kubectl:latest
+    restartPolicy: OnFailure
+    nodeSelector:
+      kubernetes.io/os: linux
+dns-server:
+  replicaCount: 1
+  image:
+    repository: 4km3/dnsmasq
+    tag: 2.90-r3
+    pullPolicy: IfNotPresent
+  config:
+    domain: okdp.sandbox
+    target: 127.0.0.1
+  service:
+    type: NodePort
+    port: 53
+    nodePort: 30053
+    protocol: UDP
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 50m
+    limits:
+      memory: 64Mi
+      cpu: 100m

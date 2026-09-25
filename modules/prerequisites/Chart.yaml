@@ -18,3 +18,90 @@ apiVersion: v2
 name: prerequisites
 description: A Helm chart for installing OKDP prerequisites
 version: 0.1.0
+
+# Every prerequisite is declared here and switched on per environment by its
+# tag, named after the alias, in the tags map of values/<environment>.yaml.
+# Tags rather than conditions: a condition key is passed down to the subchart
+# values, and some charts (trust-manager) reject keys they do not know.
+# Chart versions are the ones the OKDP sandbox runs, defined in
+# sandbox-dependencies/packages/system.
+dependencies:
+  # Pass 1: tools (sandbox: tools)
+  - name: reloader
+    version: "1.0.72"
+    repository: https://stakater.github.io/stakater-charts
+    alias: reloader
+    tags: [reloader]
+  - name: kubernetes-replicator
+    version: "2.9.2"
+    repository: https://helm.mittwald.de
+    alias: replicator
+    tags: [replicator]
+  - name: kubernetes-secret-generator
+    version: "3.4.0"
+    repository: https://helm.mittwald.de
+    alias: secret-generator
+    tags: [secret-generator]
+  # Pass 1: cert-manager (sandbox: cert-manager); trust-manager is pass 2, cert-issuers pass 3
+  - name: cert-manager
+    version: v1.17.1
+    repository: https://charts.jetstack.io
+    alias: cert-manager
+    tags: [cert-manager]
+  - name: trust-manager
+    version: v0.16.0
+    repository: https://charts.jetstack.io
+    alias: trust-manager
+    tags: [trust-manager]
+  - name: cert-issuers
+    version: "0.2.0"
+    repository: oci://quay.io/okdp/charts
+    alias: cert-issuers
+    tags: [cert-issuers]
+  # Pass 1: pg-operator (sandbox: cloudnative-pg)
+  - name: cloudnative-pg
+    version: "0.28.0"
+    repository: https://cloudnative-pg.github.io/charts/
+    alias: cloudnative-pg
+    tags: [cloudnative-pg]
+  # Pass 1: ingress (sandbox: ingress-nginx)
+  - name: ingress-nginx
+    version: "4.12.1"
+    repository: https://kubernetes.github.io/ingress-nginx
+    alias: ingress-nginx
+    tags: [ingress-nginx]
+  # Pass 1: external-secrets (sandbox: external-secrets)
+  - name: external-secrets
+    version: "0.15.1"
+    repository: https://charts.external-secrets.io
+    alias: external-secrets
+    tags: [external-secrets]
+  # Pass 1: local-secrets-provider (sandbox: local-secrets-provider)
+  - name: local-secrets-provider
+    version: "0.1.0"
+    repository: oci://quay.io/okdp/charts
+    alias: local-secrets-provider
+    tags: [local-secrets-provider]
+  # Pass 1: dns, Kind only (sandbox: coredns-patch and dns-server)
+  - name: coredns-patch
+    version: "0.1.0"
+    repository: oci://quay.io/okdp/charts
+    alias: coredns-patch
+    tags: [coredns-patch]
+  - name: dns-server
+    version: "1.0.0"
+    repository: oci://quay.io/okdp/charts
+    alias: dns-server
+    tags: [dns-server]
+  # Pass 2: database-server (sandbox: cnpg-postgresql)
+  - name: cnpg-postgresql
+    version: "0.1.0"
+    repository: oci://quay.io/okdp/charts
+    alias: cnpg-postgresql
+    tags: [cnpg-postgresql]
+  # Pass 3: identity (sandbox: keycloak)
+  - name: keycloak
+    version: "24.4.11"
+    repository: oci://registry-1.docker.io/bitnamicharts
+    alias: keycloak
+    tags: [keycloak]
